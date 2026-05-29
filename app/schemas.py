@@ -9,7 +9,7 @@ class UploadResponse(BaseModel):
 
 # Returned by GET /data/stats
 # Contains output of pandas describe() as a nested dictionary
-class Statsresponse(BaseModel):
+class StatsResponse(BaseModel):
   stats: dict[str, dict[str, float]]
 
 # Received by POST /ai/ask
