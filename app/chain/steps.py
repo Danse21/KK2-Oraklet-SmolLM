@@ -1,0 +1,102 @@
+# the 3 chain steps: 
+# PromptBuilder: (receives the user's question and the dataset statistics and formats them into a structured prompt),
+# LLMRunner: (takes that formatted prompt and sends it to the SmolLLM model and generates text response ie., a raw and unprocessed output model)
+# ResponseParser: (takes the raw model output and cleans it up and returns a clean, structured response that maps directly onto what the API sends back to the user.)
+
+from typing import Any
+from pydantic import PrivateAttr
+from transformers import pipeline
+
+from app.chain.runnable import Runnable
+from app.schemas import (
+  PromptBuilderInput,
+  PromptBuilderOutput,
+  LLMRunnerOutput,
+  ResponseParserOutput,
+)
+
+MODEL_NAME = "HuggingFaceTB/SmolLM2-135M-Instruct"
+
+# Step 1 in the chain:
+# Takes user's question and dataset statistics (Input) and 
+# formats them into a structured prompt (Output)
+class PromptBuilder(Runnable[PromptBuilderInput, PromptBuilderOutput]):
+  name: str = "prompt_builder"
+
+  # Format the stats dictionary into readable text
+  def invoke(self, data: PromptBuilderInput) -> PromptBuilderOutput:
+    stats_lines = []
+    for column, values in data.stats.items():
+      formatted = ", ".join(
+        f"{k}: {round(v, 2)}" for k, v in values.items()
+      )
+      stats_lines.append(f" {column}: {formatted}")
+    stats_text = "\n".join(stats_lines)
+
+    prompt = (
+      "You are a data analyst assistant."
+      "Answer questions about the dataset below."
+      "Be concise and base your answer only on the statistics provided."
+      "Answer in the same language as the question.\n\n"
+      f"Dataset statistics:\n{stats_text}\n\n"
+      f"Question: {data.question}"
+    )
+    return PromptBuilderOutput(prompt=prompt, question=data.question)
+
+# Step 2: sends the formatted prompt to SmolLLM and gets raw text response
+class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
+  name: str = "llm_runner"
+  model_name: str = MODEL_NAME
+
+  _pipe: Any = PrivateAttr(default=None)
+
+  def invoke(self, data: PromptBuilderOutput) -> LLMRunnerOutput:
+    if self._pipe is None:
+      self._pipe = pipeline(
+        "text-generation",
+        model=self.model_name,
+      )
+    
+    # SmolLLM2-Instruct uses a chat format with roles.
+    messages = [
+      {
+        # "system" sets the assistant's behaviour
+        "role": "system",
+        "content": (
+          "You are a helpful data analyst."
+          "Answer only based on the statistics provided."
+          "Be brief and precise."
+        ),
+      },
+      {
+        # "user" is the actual prompt built earlier in PromptBuilder.
+        "role": "user",
+        "content": data.prompt,
+      },
+    ]
+    # Limits model response to 200 characters
+    result = self._pipe(messages, max_new_token=200)
+
+    raw_output = result[0]["generated_text"][-1]["content"]
+
+    return LLMRunnerOutput(raw_output=raw_output, question=data.question)
+
+# Step 3: Cleans the raw (model) output and returns a structured response.
+class ResponseParser(Runnable[LLMRunnerOutput, ResponseParserOutput]):
+  name: str = "response_parser"
+  model_name: str = MODEL_NAME
+
+  # Input: LLMRunnerOutput (ie., raw output + question)
+  def invoke(self, data: LLMRunnerOutput) -> ResponseParserOutput:
+    answer = data.raw_output.strip()
+
+    # If nothing is returned, give a fallback message
+    if not answer:
+      answer = "The model did not return a response. Try again."
+    
+    # Output: ResponseParserOutput (ie., clean answer + question + model name)
+    return ResponseParserOutput(
+      question=data.question,
+      answer=answer,
+      model=self.model_name,
+    )
