@@ -5,7 +5,7 @@
 
 from typing import Any
 from pydantic import PrivateAttr
-from transformers import pipeline
+
 
 from app.chain.runnable import Runnable
 from app.schemas import (
@@ -52,6 +52,7 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
 
   def invoke(self, data: PromptBuilderOutput) -> LLMRunnerOutput:
     if self._pipe is None:
+      from transformers import pipeline
       self._pipe = pipeline(
         "text-generation",
         model=self.model_name,
@@ -75,7 +76,7 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
       },
     ]
     # Limits model response to 200 characters
-    result = self._pipe(messages, max_new_token=200)
+    result = self._pipe(messages, max_new_tokens=200)
 
     raw_output = result[0]["generated_text"][-1]["content"]
 

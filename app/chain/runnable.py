@@ -35,7 +35,7 @@ class Runnable(BaseModel, Generic[I, O]):
     return NotImplemented
 
   # Handles the case where a plain function is on the LEFT side of |
-  def __or__(self, other: Any) -> Any:
+  def __ror__(self, other: Any) -> Any:
     if callable(other):
       return RunnableSequence.model_construct(
         first=RunnableLambda.model_construct(func=other),
@@ -48,7 +48,7 @@ class Runnable(BaseModel, Generic[I, O]):
 class RunnableLambda(Runnable[I, O]):
   func: Callable[[I], O]
 
-  def invoke(self, data: I) -> 0:
+  def invoke(self, data: I) -> O:
     return self.func(data)  # calls the wrapped function
 
 # Holds two steps and runs them in sequence
