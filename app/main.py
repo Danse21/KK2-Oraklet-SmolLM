@@ -12,8 +12,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-  title="Oraklet",
-  description="En typad LLM-kadja med FastAPI och SolLLM",
+  title="The Oracle",
+  description="A typed LLM chain with FastAPI och SolLLM",
   version="1.0.0",
 )
 
@@ -42,7 +42,7 @@ async def upload_data(file: UploadFile = File(...)):
   # load_CSV validates, parses, renames columns and stores the dataset
   metadata = load_csv(file_size, file.filename)
 
-  logger.info(f"Dataset conatins: {metadata['rows']} rows, {len(metadata['column'])} columns")
+  logger.info(f"Dataset conatins: {metadata['rows']} rows, {len(metadata['columns'])} columns")
   return metadata
 
 # Returns descriptive statistics (mean, std, min, max, percentiles) 

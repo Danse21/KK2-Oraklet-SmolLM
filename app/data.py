@@ -46,9 +46,8 @@ def load_csv(file_size: bytes, filename: str) -> dict:
   rename_map = {
         "Overall rank":               "rank",
         "Country or region":          "country",
-        "Country":                    "country",
-        "Score":                      "score",
-        "GDP per capita":             "gdp",
+        "Score":                      "happiness_score",
+        "GDP per capita":             "gdp_per_capita",
         "Social support":             "social_support",
         "Healthy life expectancy":    "life_expectancy",
         "Freedom to make life choices": "freedom",
@@ -74,6 +73,7 @@ def get_stats() -> dict:
   df = get_dataset()
 
   # Transposes the returned statistics so each column becomes a key in the dict
-  stats = df.describe().to_dict()
+  # Remove rank and country in statistics estimation 
+  stats = df.drop(columns=["rank", "country"]).describe().to_dict()
 
   return {"stats": stats}

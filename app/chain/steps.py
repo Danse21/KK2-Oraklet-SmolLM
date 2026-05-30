@@ -56,6 +56,7 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
       self._pipe = pipeline(
         "text-generation",
         model=self.model_name,
+        device="cpu"
       )
     
     # SmolLLM2-Instruct uses a chat format with roles.
