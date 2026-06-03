@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Returned by POST /data/upload
 # Gives basic metadata about the dataset from uploaded CV file
@@ -13,9 +13,9 @@ class StatsResponse(BaseModel):
   stats: dict[str, dict[str, float]]
 
 # Received by POST /ai/ask
-# Sends user's question about the uploaded dataset
+# Sends user's question about the uploaded dataset, cannot be empty string
 class AskRequest(BaseModel):
-  question: str
+  question: str = Field(min_length=5, max_length=500)
 
 # Returned by POST /ai/ask
 # Contains question, the model's answer, and which was used
@@ -49,6 +49,11 @@ class ZerosResponse(BaseModel):
 class MissingResponse(BaseModel):
   missing: dict[str, int]
 
+# Shows how each variable correlates with happiness score
+# Returned by GET /data/correlations
+class CorrelationsResponse(BaseModel):
+  correlations: dict[str, float]
+
 # Returned by GET /data/outliers
 # Shows countries whose happiness score differs most from what their GDP alone would predict.
 class OutliersResponse(BaseModel):
@@ -61,6 +66,10 @@ class OutliersResponse(BaseModel):
 class PromptBuilderInput(BaseModel):
   question: str
   stats: dict[str, dict[str, float]]
+  top: list[dict]
+  bottom: list[dict]
+  correlations: dict[str, float]
+  outliers: dict[str, list[dict]]
 
 # Output of PromptBuilder, and input to LLMRunner
 # Contains formatted prompt ready to be sent to SmolLLM and carries forwarded questions

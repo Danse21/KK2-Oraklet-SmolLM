@@ -33,12 +33,50 @@ class PromptBuilder(Runnable[PromptBuilderInput, PromptBuilderOutput]):
       stats_lines.append(f" {column}: {formatted}")
     stats_text = "\n".join(stats_lines)
 
+    # For top and bottom happiness score questions
+    top_lines = [
+      f"{i+1}, {entry['country']}: {entry['happiness_score']}"
+      for i, entry in enumerate(data.top)
+    ]
+    top_text = "\n".join(top_lines)
+
+    bottom_lines = [
+      f"{i+1}, {entry['country']}: {entry['happiness_score']}"
+      for i, entry in enumerate(data.bottom)
+    ]
+    bottom_text = "\n".join(bottom_lines)
+
+    # Sort correlation values from strongest to weakest
+    sorted_corr = sorted(
+      data.correlations.items(),
+      key=lambda x: abs(x[1]),
+      reverse=True,
+    )
+    corr_lines = [
+      f"{col}: {round(corr, 3)}"
+      for col, corr in sorted_corr
+    ]
+    corr_text = "\n".join(corr_lines)
+
+    # Countries whose happiness score differs most from what their GDP would predict
+    over_lines =[
+      f"{entry['country']}: {entry['happiness_score']}"
+      for entry in data.outliers.get("over_performers", [])
+    ]
+    under_lines = [
+      f"{entry['country']}: {entry['happiness_score']}"
+      for entry in data.outliers.get("under_performers", [])
+    ]
+    over_text = "\n".join(over_lines) or "None"
+    under_text = "\n".join(under_lines) or "None"
+
     prompt = (
-      "You are a data analyst assistant."
-      "Answer questions about the dataset below."
-      "Be concise and base your answer only on the statistics provided."
-      "Answer in the same language as the question.\n\n"
-      f"Dataset statistics:\n{stats_text}\n\n"
+      f"Dataset statistics:\n{stats_text}"
+      f"Top 5 happiest countries:\n{top_text}"
+      f"Bottom 5 least happy countries:\n{bottom_text}"
+      f"Factor correlations with happiness score:\n{corr_text}"
+      f"Countries happier than their GDP predicts:\n{over_text}"
+      f"Countries less happy than their GDP predicts:\n{under_text}"
       f"Question: {data.question}"
     )
     return PromptBuilderOutput(prompt=prompt, question=data.question)
@@ -65,9 +103,11 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
         # "system" sets the assistant's behaviour
         "role": "system",
         "content": (
-          "You are a helpful data analyst."
-          "Answer only based on the statistics provided."
-          "Be brief and precise."
+          "You are a precise data analyst assistant."
+          "Answer the user's question using only the dataset information provided."
+          "Be concise and factual."
+          "Always mention specific numbers from the data in your answer."
+          "Answer in the same language as the question"
         ),
       },
       {
@@ -76,8 +116,12 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
         "content": data.prompt,
       },
     ]
-    # Limits model response to 200 characters
-    result = self._pipe(messages, max_new_tokens=200)
+    result = self._pipe(
+      messages,
+      max_new_tokens=300,
+      temperature=0.2,  # Keeps model focus on the data
+      do_sample=True
+    )
 
     raw_output = result[0]["generated_text"][-1]["content"]
 
@@ -92,7 +136,21 @@ class ResponseParser(Runnable[LLMRunnerOutput, ResponseParserOutput]):
   def invoke(self, data: LLMRunnerOutput) -> ResponseParserOutput:
     answer = data.raw_output.strip()
 
-    # If nothing is returned, give a fallback message
+    for prefix in ["Assistant:", "Answer:", "Response:", "AI:"]:
+      if answer.startswith(prefix):
+        answer = answer[len(prefix):].strip()
+
+    if answer and answer[-1] not in ".!?":
+      last_stop = max(
+        answer.rfind("."),
+        answer.rfind("!"),
+        answer.rfind("?"),
+      )
+      if last_stop > len(answer) // 2:
+        answer = answer[:last_stop + 1]
+
+    # If nothing is returned or nothing useful remains after cleaning, 
+    # tell the user to try again
     if not answer:
       answer = "The model did not return a response. Try again."
     

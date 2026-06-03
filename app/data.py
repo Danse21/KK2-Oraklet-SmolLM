@@ -2,6 +2,7 @@
 
 import io
 import pandas as pd
+import numpy as np
 from fastapi import HTTPException
 
 _dataset: pd.DataFrame | None = None
@@ -157,8 +158,6 @@ def get_missing() -> dict:
 # would be predicted happiness score based on their GDP per capita
 # Caled by GET /data/outliers
 def get_outliers(n: int = 5) -> dict:
-  import numpy as np
-
   df = get_dataset()
 
   # Validate that both columns exist in the dataset
