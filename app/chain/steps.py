@@ -15,7 +15,7 @@ from app.schemas import (
   ResponseParserOutput,
 )
 
-MODEL_NAME = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+MODEL_NAME = "llama-3.1-8b-instant"
 
 # Step 1 in the chain:
 # Takes user's question and dataset context as input and 
@@ -86,46 +86,51 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
   name: str = "llm_runner"
   model_name: str = MODEL_NAME
 
-  _pipe: Any = PrivateAttr(default=None)
+  # _pipe: Any = PrivateAttr(default=None)
 
   def invoke(self, data: PromptBuilderOutput) -> LLMRunnerOutput:
-    if self._pipe is None:
-      from transformers import pipeline
-      self._pipe = pipeline(
-        "text-generation",
-        model=self.model_name,
-        device="cpu"
-      )
-    
-    # SmolLLM2-Instruct uses a chat format with roles.
-    messages = [
-      {
-        # "system" sets the assistant's behaviour
-        "role": "system",
-        "content": (
-          "You are a precise data analyst assistant."
-          "Answer the user's question using only the dataset information provided."
-          "Be concise and factual."
-          "Always mention specific numbers from the data in your answer."
-          "Answer in the same language as the question"
-        ),
-      },
-      {
-        # "user" is the actual prompt built earlier in PromptBuilder.
-        "role": "user",
-        "content": data.prompt,
-      },
-    ]
-    result = self._pipe(
-      messages,
-      max_new_tokens=300,
-      temperature=0.2,  # Keeps model focus on the data
-      do_sample=True
-    )
+    import os
+    from groq import Groq
+    from dotenv import load_dotenv
 
-    raw_output = result[0]["generated_text"][-1]["content"]
+    # Load the API key from the .env file.
+    load_dotenv()
+    api_key = os.getenv("GROQ_API_KEY")
+
+    if not api_key:
+      raise ValueError(
+       "GROQ_API_KEY not found. "
+       "Add it to your .env file."
+      )
+
+    client = Groq(api_key=api_key)
+
+    response = client.chat.completions.create(
+      model=self.model_name,
+      max_tokens=300,
+      temperature=0.2,
+      messages=[
+        {
+          "role": "system",
+          "content": (
+            "You are a precise data analyst assistant. "
+            "Answer the user's question using only the dataset information provided. "
+            "Be concise and factual. "
+            "Always mention specific numbers from the data in your answer. "
+            "Answer in the same language as the question."
+          ),
+        },
+        {
+          "role": "user",
+          "content": data.prompt,
+        },
+      ],
+    )
+    # Extract the text from the response.
+    raw_output = response.choices[0].message.content
 
     return LLMRunnerOutput(raw_output=raw_output, question=data.question)
+  
 
 # Step 3: Cleans the raw (model) output and returns a structured response.
 class ResponseParser(Runnable[LLMRunnerOutput, ResponseParserOutput]):
