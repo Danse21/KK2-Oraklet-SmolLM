@@ -1,5 +1,5 @@
 # the 3 chain steps: 
-# PromptBuilder: (receives the user's question and the dataset statistics and formats them into a structured prompt),
+# PromptBuilder: (receives the user's question plus all dataset context the model needs),
 # LLMRunner: (takes that formatted prompt and sends it to the SmolLLM model and generates text response ie., a raw and unprocessed output model)
 # ResponseParser: (takes the raw model output and cleans it up and returns a clean, structured response that maps directly onto what the API sends back to the user.)
 
@@ -15,10 +15,10 @@ from app.schemas import (
   ResponseParserOutput,
 )
 
-MODEL_NAME = "HuggingFaceTB/SmolLM2-135M-Instruct"
+MODEL_NAME = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
 
 # Step 1 in the chain:
-# Takes user's question and dataset statistics (Input) and 
+# Takes user's question and dataset context as input and 
 # formats them into a structured prompt (Output)
 class PromptBuilder(Runnable[PromptBuilderInput, PromptBuilderOutput]):
   name: str = "prompt_builder"
