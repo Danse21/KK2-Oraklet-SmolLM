@@ -1,4 +1,4 @@
-# KK2-Oraklet-SmolLM project: An app built for data analysis using AI language model
+# KK2-Oraklet-SmolLM project: An app built to analyze datasets with pandas and answer questions related to the dataset using an AI language model.
 
 ## What the app does
 
@@ -441,7 +441,7 @@ uv run pytest app/tests/test_endpoints.py -v
 
 ## Model
 
-The app uses hosted Groq API
+The app uses hosted Groq LLM
 `model: llama-3.1-8b-instant`
 
 ## Dataset
