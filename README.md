@@ -75,20 +75,20 @@ Open `http://localhost:8000/docs`for the interactive Swagger UI where you can te
 ## Endpoints and expected response
 
 `GET /health` - Health
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
 "status": "ok"
 }
 ```
 
 `POST /data/upload`- Upload Data
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "rows": 156,
   "columns": [
@@ -117,10 +117,10 @@ Response body:
 ```
 
 `GET /data/stats`- Data Stats
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "stats": {
     "happiness_score": {
@@ -198,10 +198,10 @@ Response body:
 ```
 
 `GET /data/shape`- Data Shape
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "rows": 156,
   "columns": 9
@@ -209,10 +209,10 @@ Response body:
 ```
 
 `GET /data/top`- Data Top
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "results": [
     {
@@ -260,10 +260,10 @@ Response body:
 ```
 
 `GET /data/bottom`- Data Bottom
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "results": [
     {
@@ -291,10 +291,10 @@ Response body:
 ```
 
 `GET /data/zeros`- Data Zeros
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
 "zeros": {
 "gdp_per_capita": [
@@ -320,20 +320,20 @@ Response body:
 ```
 
 `GET /data/missing`- Data Missing
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "missing": {}
 }
 ```
 
 `GET /data/outliers`- Data Outliers
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "over_performers": [
     {
@@ -383,10 +383,10 @@ Response body:
 ```
 
 `GET /data/correlations`- Data Correlations
-Status code = 200
-Response body:
 
 ```
+Status code = 200
+Response body:
 {
   "correlations": {
     "gdp_per_capita": 0.794,
@@ -400,9 +400,9 @@ Response body:
 ```
 
 `GET /ai/ask`- Ask
-Request body:
 
 ```
+Request body:
 {
 "question": "Which factor contributes most to happiness score?"
 }
