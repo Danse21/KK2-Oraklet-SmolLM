@@ -1,4 +1,6 @@
-# KK2-Oraklet-SmolLM project: An app built to analyze datasets with pandas and answer questions related to the dataset using an AI language model.
+# KK2-Oraklet-SmolLM project:
+
+A FastAPI REST API that accepts a CSV dataset, analyses the it with pandas and answers natural language questions about the dataset using a typed LLM chain (PromptBuilder | LLMRunner | ResponseParser) backed by hosted Groq API.
 
 ## What the app does
 
@@ -6,6 +8,30 @@
 2. Reads and stores the dataset in memory through API.
 3. Inspects and/or analyses the dataset through many API endpoints
 4. Let a user ask natural language question about the dataset and get back an AI-generated answer based on the analysis statistics.
+
+## Model
+
+The app uses hosted Groq LLM
+`model: llama-3.1-8b-instant`
+
+## Dataset
+
+The project was built and tested with the **World Happiness Report 2019** dataset from Kaggle.
+Download: https://www.kaggle.com/datasets/unsdsn/world-happiness?select=2019.csv
+
+For the purpose of analysis, the dataset columns where renamed to a snake_case format
+
+| Original name                | Renamed to      |
+| ---------------------------- | --------------- |
+| Overall rank                 | rank.           |
+| Country or region            | country         |
+| Score                        | happiness_score |
+| GDP per capita               | gdp_per-capita  |
+| Social support               | social_support  |
+| Healthy life expectancy      | life_expectancy |
+| Freedom to make life choices | freedom         |
+| Generosity                   | generosity      |
+| Perception of corruption     | corruption      |
 
 ## Project structure
 
@@ -438,27 +464,3 @@ uv run pytest app/tests/test_chain.py -v
 # Run only endpoint tests
 uv run pytest app/tests/test_endpoints.py -v
 ```
-
-## Model
-
-The app uses hosted Groq LLM
-`model: llama-3.1-8b-instant`
-
-## Dataset
-
-The project was built and tested with the **World Happiness Report 2019** dataset from Kaggle.
-Download: https://www.kaggle.com/datasets/unsdsn/world-happiness?select=2019.csv
-
-For the purpose of analysis, the dataset columns where renamed to a snake_case format
-
-| Original name                | Renamed to      |
-| ---------------------------- | --------------- |
-| Overall rank                 | rank.           |
-| Country or region            | country         |
-| Score                        | happiness_score |
-| GDP per capita               | gdp_per-capita  |
-| Social support               | social_support  |
-| Healthy life expectancy      | life_expectancy |
-| Freedom to make life choices | freedom         |
-| Generosity                   | generosity      |
-| Perception of corruption     | corruption      |
