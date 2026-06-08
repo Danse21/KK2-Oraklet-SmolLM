@@ -1,4 +1,4 @@
-# the 3 chain steps: 
+# the 3 chain steps:
 # PromptBuilder: (receives the user's question plus all dataset context the model needs),
 # LLMRunner: (takes that formatted prompt and sends it to the SmolLLM model and generates text response ie., a raw and unprocessed output model)
 # ResponseParser: (takes the raw model output and cleans it up and returns a clean, structured response that maps directly onto what the API sends back to the user.)
@@ -18,7 +18,7 @@ from app.schemas import (
 MODEL_NAME = "llama-3.1-8b-instant"
 
 # Step 1 in the chain:
-# Takes user's question and dataset context as input and 
+# Takes user's question and dataset context as input and
 # formats them into a structured prompt (Output)
 class PromptBuilder(Runnable[PromptBuilderInput, PromptBuilderOutput]):
   name: str = "prompt_builder"
@@ -86,24 +86,18 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
   name: str = "llm_runner"
   model_name: str = MODEL_NAME
 
-  # _pipe: Any = PrivateAttr(default=None)
-
   def invoke(self, data: PromptBuilderOutput) -> LLMRunnerOutput:
-    import os
+
     from groq import Groq
-    from dotenv import load_dotenv
+    from app.config import GROQ_API_KEY
 
-    # Load the API key from the .env file.
-    load_dotenv()
-    api_key = os.getenv("GROQ_API_KEY")
-
-    if not api_key:
+    if not GROQ_API_KEY:
       raise ValueError(
        "GROQ_API_KEY not found. "
        "Add it to your .env file."
       )
 
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=GROQ_API_KEY)
 
     response = client.chat.completions.create(
       model=self.model_name,
@@ -130,7 +124,7 @@ class LLMRunner(Runnable[PromptBuilderOutput, LLMRunnerOutput]):
     raw_output = response.choices[0].message.content
 
     return LLMRunnerOutput(raw_output=raw_output, question=data.question)
-  
+
 
 # Step 3: Cleans the raw (model) output and returns a structured response.
 class ResponseParser(Runnable[LLMRunnerOutput, ResponseParserOutput]):
@@ -154,11 +148,11 @@ class ResponseParser(Runnable[LLMRunnerOutput, ResponseParserOutput]):
       if last_stop > len(answer) // 2:
         answer = answer[:last_stop + 1]
 
-    # If nothing is returned or nothing useful remains after cleaning, 
+    # If nothing is returned or nothing useful remains after cleaning,
     # tell the user to try again
     if not answer:
       answer = "The model did not return a response. Try again."
-    
+
     # Output: ResponseParserOutput (ie., clean answer + question + model name)
     return ResponseParserOutput(
       question=data.question,

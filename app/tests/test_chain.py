@@ -1,4 +1,4 @@
-# Test for each Runnable step 
+# Test for each Runnable step
 # with each test given a step known input and verifies the output is correct
 
 # Run with: uv run pytest app/tests/test_chain.py -v
@@ -49,7 +49,7 @@ sample_question = "Which country has the highest happiness score?"
 # Builds a PromptBuilderInput with all required fields.
 def _make_input(question=sample_question):
   return PromptBuilderInput(
-    question=sample_question,
+    question=question,
     stats=sample_stats,
     top=sample_top,
     bottom=sample_bottom,
@@ -92,7 +92,7 @@ def test_prompt_builder_carries_question_forward():
   output = PromptBuilder().invoke(_make_input())
   assert output.question == sample_question
 
-def test_response_parser_strips_whitesapce():
+def test_response_parser_strips_whitespace():
   """ResponseParser strips leading and trailing whitespace from the model output."""
   raw_input = LLMRunnerOutput(
     raw_output="Finland has the highest score. \n",
@@ -118,7 +118,7 @@ def test_response_carries_question_and_model_forward():
   )
   output = ResponseParser().invoke(raw_input)
   assert output.question == sample_question
-  assert "SmolLM" in output.model
+  assert output.model == "llama-3.1-8b-instant"
 
 def test_response_parser_strips_common_prefixes():
   """ResponseParser removes prefixes like 'Answer:' and 'Assistant:' from the reply."""
@@ -128,9 +128,9 @@ def test_response_parser_strips_common_prefixes():
     raw_output=f"{prefix} Finland is the happiest country.",
     question=sample_question,
   )
-  output = parser.invoke(raw_input)
-  assert not output.answer.startswith(prefix)
-  assert "Finland" in output.answer
+    output = parser.invoke(raw_input)
+    assert not output.answer.startswith(prefix)
+    assert "Finland" in output.answer
 
 def test_response_parser_trims_incomplete_sentence():
   """ResponseParser trims a cut-off reply back to the last complete sentence."""

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 # Returned by POST /data/upload
-# Gives basic metadata about the dataset from uploaded CV file
+# Gives basic metadata about the dataset from CV file
 class UploadResponse(BaseModel):
   rows: int
   columns: list[str]
@@ -84,7 +84,7 @@ class LLMRunnerOutput(BaseModel):
   question: str
 
 # Output of ResponseParser
-# Maps directly onto AskResponse and gives carries what is returned to user
+# Maps directly onto AskResponse and carries what is returned to user
 class ResponseParserOutput(BaseModel):
   question: str
   answer: str

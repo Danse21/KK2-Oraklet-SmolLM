@@ -61,7 +61,7 @@ def test_stats_after_upload_returns_200(client, sample_csv_bytes):
 
 def test_correlations_without_upload_returns_404(client):
   """GET /data/correlations without an uploaded dataset returns 404."""
-  resp = client.get("/data/correlation")
+  resp = client.get("/data/correlations")
   assert resp.status_code == 404
 
 def test_correlations_after_upload_returns_200(client, sample_csv_bytes):
@@ -101,6 +101,13 @@ def test_top_without_upload_returns_404(client):
   """GET /data/top without an uploaded dataset returns 404."""
   resp = client.get("/data/top")
   assert resp.status_code == 404
+
+def test_top_with_unrecognized_columns_returns_400(client):
+  """GET /data/top after uploading a CSV file with unrecognized columns returns 400."""
+  unmatched_csv = b"foo,bar,baz\n1,2,3\n4,5,6\n"
+  client.post("/data/upload", files={"file": ("unmatched.csv", unmatched_csv, "text/csv")},)
+  resp = client.get("/data/top")
+  assert resp.status_code == 400
 
 def test_top_returns_correct_number_of_countries(client, sample_csv_bytes):
   """GET /data/top?n=2 returns 2 countries with Finland first."""
@@ -236,3 +243,10 @@ def test_ask_with_mocked_model_returns_answer(client, sample_csv_bytes):
   assert "answer" in data
   assert "model" in data
   assert data["answer"] == "The mean happiness score is 5.4."
+
+def test_ask_returns_500_when_chain_raises(client, sample_csv_bytes):
+  """POST /ai/ask returns 500 when the chain raises an unexpected exception."""
+  client.post("/data/upload", files={"file": ("data-2019.csv", sample_csv_bytes, "text/csv")})
+  with patch.object(RunnableSequence, 'invoke', side_effect=RuntimeError("model timeout")):
+    resp = client.post("/ai/ask", json={"question": "What is the mean score?"},)
+    assert resp.status_code == 500

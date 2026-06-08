@@ -1,6 +1,12 @@
 # KK2-Oraklet-SmolLM project:
 
-A FastAPI REST API that accepts a CSV dataset, analyses the it with pandas and answers natural language questions about the dataset using a typed LLM chain (PromptBuilder | LLMRunner | ResponseParser) backed by hosted Groq API.
+A system built with a **REST API in FastAPI** that enables users to upload datasets(.csv file), perform automated data analysis and ask natural natural language questions about their data.
+
+## Key features
+
+- **Structured LLM chain:** Implements a predictable, typed pipeline (PromptBuilder | LLMRunner | ResponseParser) backed by hosted **Groq API**.
+- **Automated Data analysis:** Integrates **pandas** for processing and analysis of uploaded dataset before passing context to the LLM.
+- **Interactive Documentation:** Integrates **Swagger UI** for exploring, validating, and testing all API endpoints interactively.
 
 ## What the app does
 
@@ -77,16 +83,15 @@ cd KK2-Oraklet-SmolLM
 # Key dependencies: fastapi, uvicorn, numpy, pydantic, transformers
 uv sync
 
-# Get Groq API kek
+# Get Groq API key
 https://console.groq.com --> log in with Google or GitHub account --> click on API keys --> Create API Keys
 
-uv add groq python-dotenv
-
 Put the API key in a .env file (format: GROQ_API_KEY=put_your-key-here)
+
+uv add groq python-dotenv
 ```
 
-NB: Due to computer compatibility, this project pins `torch==2.2.2`, `transformers>=4.40,<5.0`, and `numpy<2`.
-Because my computer device can only run on CPU which runs slow for even small language models tested SmolLM2-135M and 1.7B, this app is setup to use a hosted Groq API model.
+Because my computer device can only run on CPU which is slow for even small language models tested (SmolLM2-135M and 1.7B), this app is setup to use a hosted Groq API. As a result, `torch==2.2.2`, `transformers>=4.40,<5.0` was removed from `pyproject.toml`as there were no longer needed.
 
 ## Run the server
 
@@ -96,9 +101,9 @@ uv run uvicorn app.main:app --reload
 
 The server starts at `http://localhost:800`.
 
-Open `http://localhost:8000/docs`for the interactive Swagger UI where you can test all endpoints.
+Open `http://localhost:8000/docs` to go to interactive **Swagger UI** where you can explore the endpoints and analyze your data.
 
-## Endpoints and expected response
+## Endpoints and example of expected response
 
 `GET /health` - Health
 
@@ -432,8 +437,9 @@ Request body:
 {
 "question": "Which factor contributes most to happiness score?"
 }
-
 ```
+
+**Note** that the "question" field must be between 5 and 500 characters to be accepted.
 
 **Example server response**
 

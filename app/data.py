@@ -16,7 +16,7 @@ def get_dataset() -> pd.DataFrame:
     )
   return _dataset
 
-# Reads a CSV file from raw bytes, validates it, and stores it in memory 
+# Reads a CSV file from raw bytes, validates it, and stores it in memory
 def load_csv(file_size: bytes, filename: str) -> dict:
   global _dataset
 
@@ -35,14 +35,14 @@ def load_csv(file_size: bytes, filename: str) -> dict:
       status_code=400,
       detail=f"The file could not be read as CSV: {e}"
     )
-  
+
   # Check that the file is not empty
   if df.empty:
     raise HTTPException(
       status_code=400,
       detail="The file is empty. Upload a CSV file with data."
     )
-  
+
   # Rename columns to match that of KK1 notebook (analyzed data)
   rename_map = {
         "Overall rank":               "rank",
@@ -55,7 +55,7 @@ def load_csv(file_size: bytes, filename: str) -> dict:
         "Generosity":                 "generosity",
         "Perceptions of corruption":  "corruption",
     }
-  
+
   # apply renaming to only columns that exist in the file
   df =df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
 
@@ -74,8 +74,8 @@ def get_stats() -> dict:
   df = get_dataset()
 
   # Transposes the returned statistics so each column becomes a key in the dict
-  # Remove rank and country in statistics estimation 
-  stats = df.drop(columns=["rank", "country"]).describe().to_dict()
+  # Remove rank and country in statistics estimation
+  stats = df.drop(columns=["rank", "country"], errors='ignore').describe().to_dict()
 
   return {"stats": stats}
 
@@ -100,7 +100,7 @@ def get_top_bottom(n: int, order: str) -> dict:
       status_code=400,
       detail="Dataset has no 'happiness_score' column"
     )
-  
+
   # Check that country column exist
   if "country" not in df.columns:
     raise HTTPException(
@@ -113,7 +113,7 @@ def get_top_bottom(n: int, order: str) -> dict:
     selected = df.nlargest(n, "happiness_score")[["country", "happiness_score"]]
   else:
     selected = df.nsmallest(n, "happiness_score")[["country", "happiness_score"]]
-  
+
   # Build the result as a list of dicts
   results = [
     {"country": row["country"], "happiness_score": round(row["happiness_score"], 3)}
@@ -154,7 +154,7 @@ def get_missing() -> dict:
   }
   return {"missing": missing}
 
-# Returns countries that over or under performed their 
+# Returns countries that over or under performed their
 # would be predicted happiness score based on their GDP per capita
 # Caled by GET /data/outliers
 def get_outliers(n: int = 5) -> dict:
@@ -173,7 +173,7 @@ def get_outliers(n: int = 5) -> dict:
       status_code=400,
       detail="No 'country' in the dataset"
     )
-  
+
   # Drop any row with NaN
   clean = df[["gdp_per_capita", "happiness_score", "country"]].dropna()
 
@@ -198,13 +198,12 @@ def get_outliers(n: int = 5) -> dict:
   return {"over_performers": over_performers_list, "under_performers": under_performers_list}
 
 
-# Estimate and return correlation with happiness score 
+# Estimate and return correlation with happiness score
 def get_correlations() -> (dict):
   df = get_dataset()
-  # print(df.columns.tolist())
-  # print(df["happiness_score"].head())
 
-  numeric_cols = ["gdp_per_capita", "social_support", "life_expectancy", "freedom", "generosity", "corruption"]
+  expected_cols = ["gdp_per_capita", "social_support", "life_expectancy", "freedom", "generosity", "corruption"]
+  numeric_cols = [col for col in expected_cols if col in df.columns]
 
   correlations = (df[numeric_cols]
                   .corrwith(df["happiness_score"])
