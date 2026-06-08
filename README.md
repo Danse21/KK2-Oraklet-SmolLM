@@ -471,7 +471,7 @@ uv run pytest app/tests/test_endpoints.py -v
 
 ## Assumption
 
-- The application is built and tested against the World Happiness Report 2019 dataset. Other CSV file can be uploaded by analysis might need to be adapted.
+- The application is built and tested against the World Happiness Report 2019 dataset. Other CSV file can be uploaded but analysis might need to be adapted.
 - Uploaded CSV files must be UTF-8 encoded.
 - The dataset is not saved to disk, but temporarily in the server. This implies that if the server restarts, the dataset will be lost and must be re-uploaded.
 - The application holds one dataset at a time. Uploading a new file replaces the previous one.
