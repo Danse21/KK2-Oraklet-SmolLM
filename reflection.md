@@ -23,7 +23,7 @@ if not GROQ_API_KEY:
   raise ValueError("GROQ_API_KEY not found. Add it to your .env file.")
 ```
 
-## File upload risks
+### File upload risks
 
 Accepting arbitrary file is a common attack interface. A malicious user could upload an oversized file to exhaust server memory, a file with a misleading extension to cause harm to the system, or a crafted CSV designed to exploit vulnerabilities in the parsing library.
 The mitigations applied in this application are:
@@ -41,7 +41,7 @@ if not filename.lower().endswith(".csv"):
 - Oversized file: The application reads the raw bytes and rejects file larger than 10 MB before passing to pandas:
 
 ```python
-imax_size = 10 * 1024 * 1024
+max_size = 10 * 1024 * 1024
   if len(file_bytes) > max_size:
     raise HTTPException(
       status_code=400,
@@ -52,7 +52,7 @@ imax_size = 10 * 1024 * 1024
 - File encoding: The application accepts only UTF-8 encode CSV files, and rejects any file with different encoding.
   `df = pd.read_csv(io.BytesIO(file_bytes), encoding="utf-8", encoding_errors="strict")``
 
-## Prompt injection
+### Prompt injection
 
 Prompt injection is a system attack where a user crafts their input in a way that overrides the model's original instructions. In this project application, the question field goes directly into the prompt sent to the model. Here is an example:
 
@@ -77,11 +77,11 @@ _dataset: pd.DataFrame | None = None
 This means that every uploaded file is temporarily stored in server memory while the server is active or running. If the uploaded dataset contains personal information, it raises some GDPR concerns:
 
 - No consent mechanism: The application does not ask the user what the data will be used for, or inform them that it will be processed by a third-party API like Groq.
-- Third-party data transfer: When a question is asked, part of the dataset is sent to the Groq's server in order to generate an answer. If the dataset contained personal data, that would during the process be transfered to a data processor, which requires a a Data Processing Agreement (DPR).
+- Third-party data transfer: When a question is asked, part of the dataset is sent to the Groq's server in order to generate an answer. If the dataset contained personal data, that would during the process be transfered to a data processor, which requires a a Data Processing Agreement (DPA).
 - No deletion mechanism: The application does not have an endpoint for deleting uploaded dataset. This implies that any uploaded dataset stays in the server until the server is restarted.
 - No access control: As it is curently, any user can call `/data/stats/` or `/ai/ask` and be able to obtain information about the last uploaded dataset. This exposes one user's data to another.
 
-To put this application into production with personal data would require a kind of per-session data isolation (like using session taken), user consent to storage and processing of their data by a third-party like Groq.
+To put this application into production with personal data would require a kind of per-session data isolation (like using session token), user consent to storage and processing of their data by a third-party like Groq.
 
 ## 3. AI risks and responsibility
 
@@ -113,11 +113,11 @@ fake_result = ResponseParserOutput(
 ```
 
 This approach verifies that the endpoint correctly calls the chain, passes the result into an `AskResponse`, and returns 200 with the right JSON structure with no API call.
-It woth to mention that individual chain steps are tested in, for example, `ResponseParser`is tested with known input to verify that it strips whitespace, removes prefixes like `"Answer:", "Assistant:", "Response:", "AI:"`, and trims imcomplete sentences.
+It worth to mention that individual chain steps are tested in, for example, `ResponseParser`is tested with known input to verify that it strips whitespace, removes prefixes like `"Answer:", "Assistant:", "Response:", "AI:"`, and trims incomplete sentences.
 
 ## 4. Design choices
 
-### Why the Runnable pattern with `I`
+### Why the Runnable pattern with `'|'`
 
 Writing all logic in a single function would result to:
 
@@ -129,10 +129,17 @@ def ask(question, stats, top, bottom):
     return {"question": question, "answer": answer}
 ```
 
-This will difficult to test, extend, and swap components. Testing one component will be difficult because all are entangled with the API call. Also, to replace Groq with a different model, you would have to find and modify logic scattered across the function.
-
-The Runnable pattern separates these three concerns into independent classes, each with typed inputs and outputs:
+The problem with this is that it be will difficult to test, extend, and swap components. Testing a parameter of the function will be difficult because all are entangled with the API call. Also, to replace Groq with a different model, you would have to find and modify logic scattered across the function.
+That is where Runnable pattern draws it major strength as it separates those three concerns into independent classes, each with typed inputs and outputs. And each step can be tested in isolation.
 
 ```python
 oraklet = PromptBuilder() | LLMRunner() | ResponseParser()
 ```
+
+The concept of Runnable pattern can also create a level of security against prompt injection attempt. This is because by keeping the system instruction in separate class, for example, model's role in `LLMRunner`and data as well as question handling in `PromptBuilder`, it becomes harder to override the model's role or system message.
+One draw back of Runnable pattern is that it introduces extra files and classes in a project. This can feel like over-engineering in a simple project, but very useful as the project grows.
+
+### Biggest technical obstacle in the project
+
+I think the biggest technical obstacle is my computer hardware constraint. When I noticed that `SmolLM2-135M-Instruct` was not returning a clear answer and 1.7B variant was too big for my computer to run locally, I had to figure out how to use a hosted API.
+So, I solved the hardware obstacle by switching to hosted Groq API which allowed me to use the model (`llama-3.1-8b-instant`) without downloading it into my computer.

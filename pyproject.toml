@@ -1,7 +1,7 @@
 [project]
 name = "kk2-oraklet-smollm"
 version = "0.1.0"
-description = "Add your description here"
+description = "A system built with a REST API in FastAPI that enables users to upload datasets(.csv file), perform automated data analysis and ask natural natural language questions about their data."
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
 dependencies = [

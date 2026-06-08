@@ -32,12 +32,12 @@ For the purpose of analysis, the dataset columns where renamed to a snake_case f
 | Overall rank                 | rank.           |
 | Country or region            | country         |
 | Score                        | happiness_score |
-| GDP per capita               | gdp_per-capita  |
+| GDP per capita               | gdp_per_capita  |
 | Social support               | social_support  |
 | Healthy life expectancy      | life_expectancy |
 | Freedom to make life choices | freedom         |
 | Generosity                   | generosity      |
-| Perception of corruption     | corruption      |
+| Perceptions of corruption    | corruption      |
 
 ## Project structure
 
@@ -65,7 +65,7 @@ For the purpose of analysis, the dataset columns where renamed to a snake_case f
     │   └── steps.py            # Defines PromptBuilder, LLMRunner, ResponseParser
     └── tests/
         ├── __init__.py
-        ├── conftest.py         # Contains shred fixtures: TestClient, sample CSV, dataset reset
+        ├── conftest.py         # Contains shared fixtures: TestClient, sample CSV, dataset reset
         ├── test_chain.py       # Contains tests for each chain step in isolation
         └── test_endpoints.py   # Contains tests for all API endpoints
 ```
@@ -80,15 +80,13 @@ git clone git@github.com:Danse21/KK2-Oraklet-SmolLM.git
 cd KK2-Oraklet-SmolLM
 
 # Install dependencies
-# Key dependencies: fastapi, uvicorn, numpy, pydantic, transformers
+# Key dependencies: fastapi, uvicorn, numpy
 uv sync
 
 # Get Groq API key
 https://console.groq.com --> log in with Google or GitHub account --> click on API keys --> Create API Keys
 
 Put the API key in a .env file (format: GROQ_API_KEY=put_your-key-here)
-
-uv add groq python-dotenv
 ```
 
 Because my computer device can only run on CPU which is slow for even small language models tested (SmolLM2-135M and 1.7B), this app is setup to use a hosted Groq API. As a result, `torch==2.2.2`, `transformers>=4.40,<5.0` was removed from `pyproject.toml`as there were no longer needed.
@@ -99,7 +97,7 @@ Because my computer device can only run on CPU which is slow for even small lang
 uv run uvicorn app.main:app --reload
 ```
 
-The server starts at `http://localhost:800`.
+The server starts at `http://localhost:8000`.
 
 Open `http://localhost:8000/docs` to go to interactive **Swagger UI** where you can explore the endpoints and analyze your data.
 
@@ -430,7 +428,7 @@ Response body:
 }
 ```
 
-`GET /ai/ask`- Ask
+`POST /ai/ask`- Ask
 
 ```
 Request body:

@@ -42,7 +42,7 @@ def test_upload_empty_file_returns_400(client):
   )
   assert resp.status_code == 400
 
-def test_stats_without_upload_returns_400(client):
+def test_stats_without_upload_returns_404(client):
   """GET /data/stats without an uploaded dataset returns 404."""
   resp = client.get("/data/stats")
   assert resp.status_code == 404
