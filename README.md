@@ -468,3 +468,12 @@ uv run pytest app/tests/test_chain.py -v
 # Run only endpoint tests
 uv run pytest app/tests/test_endpoints.py -v
 ```
+
+## Assumption
+
+- The application is built and tested against the World Happiness Report 2019 dataset. Other CSV file can be uploaded by analysis might need to be adapted.
+- Uploaded CSV files must be UTF-8 encoded.
+- The dataset is not saved to disk, but temporarily in the server. This implies that if the server restarts, the dataset will be lost and must be re-uploaded.
+- The application holds one dataset at a time. Uploading a new file replaces the previous one.
+- Internet connection is required at all time while using the application since the model runs on Groq's server.
+- The application accepts a maximum file size of 10 MB in one upload.
