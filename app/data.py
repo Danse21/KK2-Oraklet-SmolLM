@@ -17,7 +17,7 @@ def get_dataset() -> pd.DataFrame:
   return _dataset
 
 # Reads a CSV file from raw bytes, validates it, and stores it in memory
-def load_csv(file_size: bytes, filename: str) -> dict:
+def load_csv(file_bytes: bytes, filename: str) -> dict:
   global _dataset
 
   # check the file extension matches
@@ -28,7 +28,7 @@ def load_csv(file_size: bytes, filename: str) -> dict:
     )
   # Try to read the file with Pandas
   try:
-    df = pd.read_csv(io.BytesIO(file_size))
+    df = pd.read_csv(io.BytesIO(file_bytes), encoding="utf-8", encoding_error="strict")
   # Raise an error if file is not a valid CSV
   except Exception as e:
     raise HTTPException(

@@ -54,7 +54,7 @@ For the purpose of analysis, the dataset columns where renamed to a snake_case f
 ├── uv.lock
 └── app/
     ├── __init__.py
-    ├── config.py
+    ├── config.py               # Contains .env file loading settings
     ├── data.py                 # In-memory dataset storage and conatins all analysis functions
     ├── main.py                 # Contains all endpoints, FastAPI app
     ├── schemas.py              # Pydantic models for API input/output and chain steps
@@ -439,7 +439,7 @@ Request body:
 }
 ```
 
-**Note** that the "question" field must be between 5 and 500 characters to be accepted.
+**Note** that the your question must be between 5 and 500 characters to be accepted.
 
 **Example server response**
 

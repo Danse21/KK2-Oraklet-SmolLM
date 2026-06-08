@@ -7,8 +7,3 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GROQ_API_KEY: str | None = os.getenv("GROQ_API_KEY")  # GROQ API key
-
-MODEL_NAME: str = os.getenv(
-  "MODEL_NAME",
-  "HuggingFaceTB/SmolLM2-135M-Instruct"
-)

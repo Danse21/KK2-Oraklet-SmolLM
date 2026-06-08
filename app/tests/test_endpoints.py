@@ -230,7 +230,7 @@ def test_ask_with_mocked_model_returns_answer(client, sample_csv_bytes):
   fake_result = ResponseParserOutput(
     question="What is the mean score?",
     answer="The mean happiness score is 5.4.",
-    model="HuggingFaceTB/SmolLM2-135M-Instruct",
+    model="llama-3.1-8b-instant",
   )
   with patch.object(RunnableSequence, 'invoke', return_value=fake_result):
     resp = client.post(
